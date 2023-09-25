@@ -49,28 +49,37 @@ namespace CasinoSimulationApi.Services
             BlackjackGame game = GetNewGame();
             BlackjackGameResult result = new BlackjackGameResult();
 
-            int playerTotal = game.PlayerCards.Sum();
-            int dealerTotal = game.DealerFaceUpCard + game.DealerFaceDownCard;
-            List<int> dealerCards = new List<int> { game.DealerFaceDownCard, game.DealerFaceUpCard };
+            int playerTotal = game.CalculateTotalPlayer();
+
+            int dealerTotal = game.CalculateTotalDealer();
             Result gameResult = Result.Blackjack;
 
-            result.PlayerTotal = playerTotal;
+            result.PlayerTotal = game.CalculateTotalPlayer();
             result.Bet = player.CurrentBet;
 
             if (playerTotal == 21)
             {
-                player.Blackjack();
-                gameResult = Result.Blackjack;
-                gameOver = true;
+                if (dealerTotal == 21)
+                {
+                    player.Tie();
+                    gameResult = Result.Push;
+                    gameOver = true;
+                } else
+                {
+                    player.Blackjack();
+                    gameResult = Result.Blackjack;
+                    gameOver = true;
+                }
             }
 
             Decision decision = _decisionService.Decide(game);
-            while (decision == Decision.Hit)
+            bool hasHit = false;
+
+            while (decision == Decision.Hit || (decision == Decision.Double && hasHit))
             {
                 int newCard = GetNextCard();
                 game.PlayerCards.Add(newCard);
                 playerTotal += newCard;
-                result.PlayerTotal = playerTotal;
 
                 if (playerTotal > 21 && !gameOver)
                 {
@@ -80,23 +89,24 @@ namespace CasinoSimulationApi.Services
                 }
 
                 decision = _decisionService.Decide(game);
+                hasHit = true;
             }
 
             if (decision == Decision.Double)
             {
-                player.PlaceBet();
+                player.Double();
                 result.Double = true;
                 int newCard = GetNextCard();
-                game.PlayerCards.Add(newCard);
-                playerTotal += newCard;
-                player.Double();
+                game.AddCardPlayer(newCard);
             }
+
+            playerTotal = game.CalculateTotalPlayer();
 
             while (dealerTotal < 17 && !gameOver)
             {
                 int newCard = GetNextCard();
-                dealerTotal += newCard;
-                dealerCards.Add(newCard);
+                game.AddCardDealer(newCard);
+                dealerTotal = game.CalculateTotalDealer();
             }
 
             if (dealerTotal > 21 && !gameOver)
@@ -127,8 +137,9 @@ namespace CasinoSimulationApi.Services
             }
 
             result.PlayerCards = game.PlayerCards;
-            result.DealerCards = dealerCards;
+            result.DealerCards = game.DealerCards;
             result.DealerTotal = dealerTotal;
+            result.PlayerTotal = playerTotal;
             result.EndBalance = player.Balance;
             result.SetResult(gameResult);
             Results.Add(result);
@@ -144,6 +155,3 @@ namespace CasinoSimulationApi.Services
         }
     }
 }
-
-// next: list of all games
-// next: blackjack
