@@ -11,6 +11,45 @@
         {
             Balance = balance;
             BettingAmount = bettingAmount;
+            CurrentBet = bettingAmount;
+        }
+
+        public bool CanBet()
+        {
+            return Balance >= CurrentBet;
+        }
+
+        public void PlaceBet()
+        {
+            Balance -= CurrentBet;
+        }
+
+        public void Blackjack()
+        {
+            Balance += CurrentBet * 1.5m;
+            CurrentBet = BettingAmount;
+        }
+
+        public void Lost()
+        {
+            CurrentBet *= 2;
+        }
+
+        public void Won()
+        {
+            Balance += CurrentBet * 2;
+            CurrentBet = BettingAmount;
+        }
+
+        public void Tie()
+        {
+            Balance += CurrentBet;
+        }
+
+        public void Double()
+        {
+            Balance -= CurrentBet;
+            CurrentBet *= 2;
         }
     }
 }

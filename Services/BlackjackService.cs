@@ -6,6 +6,7 @@ namespace CasinoSimulationApi.Services
     public class BlackjackService
     {
         private readonly DecisionService _decisionService;
+        public List<BlackjackGameResult> Results { get; set; } = new List<BlackjackGameResult>();
 
         public BlackjackService(DecisionService decisionService)
         {
@@ -39,38 +40,29 @@ namespace CasinoSimulationApi.Services
             return new BlackjackGame(dealerFaceUpCard, dealerFaceDownCard, playerCards);
         }
 
-        public Player InitializePlayer(decimal StartingBalance, decimal BettingAmount)
-        {
-            return new Player(StartingBalance, BettingAmount);
-        }
-
-        public void PlayerLost(Player player)
-        {
-            player.CurrentBet *= 2;
-        }
-
-        public void PlayerWon(Player player)
-        {
-            player.Balance += player.CurrentBet * 2;
-            player.CurrentBet = player.BettingAmount;
-        }
-
-        public void Tie(Player player)
-        {
-            player.Balance += player.CurrentBet;
-        }
-
         // plays a round and return weather or not the player was able to play
-        public bool PlayRound(Player player)
+        public void PlayRound(Player player)
         {
-            if (player.Balance < player.CurrentBet)
-            {
-                return false;
-            }
+            player.PlaceBet();
+            bool gameOver = false;
 
             BlackjackGame game = GetNewGame();
+            BlackjackGameResult result = new BlackjackGameResult();
+
             int playerTotal = game.PlayerCards.Sum();
             int dealerTotal = game.DealerFaceUpCard + game.DealerFaceDownCard;
+            List<int> dealerCards = new List<int> { game.DealerFaceDownCard, game.DealerFaceUpCard };
+            Result gameResult = Result.Blackjack;
+
+            result.PlayerTotal = playerTotal;
+            result.Bet = player.CurrentBet;
+
+            if (playerTotal == 21)
+            {
+                player.Blackjack();
+                gameResult = Result.Blackjack;
+                gameOver = true;
+            }
 
             Decision decision = _decisionService.Decide(game);
             while (decision == Decision.Hit)
@@ -78,10 +70,13 @@ namespace CasinoSimulationApi.Services
                 int newCard = GetNextCard();
                 game.PlayerCards.Add(newCard);
                 playerTotal += newCard;
+                result.PlayerTotal = playerTotal;
 
-                if (playerTotal > 21)
+                if (playerTotal > 21 && !gameOver)
                 {
-                    break;
+                    player.Lost();
+                    gameResult = Result.PlayerBusted;
+                    gameOver = true;
                 }
 
                 decision = _decisionService.Decide(game);
@@ -89,42 +84,63 @@ namespace CasinoSimulationApi.Services
 
             if (decision == Decision.Double)
             {
-                game.PlayerCards.Add(GetNextCard());
-                playerTotal = game.PlayerCards.Sum();
-                player.Balance -= player.CurrentBet;
-                player.CurrentBet *= 2;
+                player.PlaceBet();
+                result.Double = true;
+                int newCard = GetNextCard();
+                game.PlayerCards.Add(newCard);
+                playerTotal += newCard;
+                player.Double();
             }
 
-            if (playerTotal > 21)
+            while (dealerTotal < 17 && !gameOver)
             {
-                PlayerLost(player);
-                return true;
+                int newCard = GetNextCard();
+                dealerTotal += newCard;
+                dealerCards.Add(newCard);
             }
 
-            while (dealerTotal < 17)
+            if (dealerTotal > 21 && !gameOver)
             {
-                dealerTotal += GetNextCard();
+                player.Won();
+                gameResult = Result.DealerBusted;
+                gameOver = true;
             }
 
-            if (dealerTotal > 21 || playerTotal > dealerTotal)
+            if (playerTotal > dealerTotal && !gameOver)
             {
-                PlayerWon(player);
-                return true;
+                player.Won();
+                gameResult = Result.PlayerWon;  
+                gameOver = true;
             }
 
-            PlayerLost(player);
-            return true;
+            if (playerTotal == dealerTotal && !gameOver)
+            {
+                player.Tie();
+                gameResult = Result.Push;
+                gameOver = true;
+            }
+
+            if (dealerTotal > playerTotal && !gameOver)
+            {
+                player.Lost();
+                gameResult = Result.DealerWon;
+            }
+
+            result.PlayerCards = game.PlayerCards;
+            result.DealerCards = dealerCards;
+            result.DealerTotal = dealerTotal;
+            result.EndBalance = player.Balance;
+            result.SetResult(gameResult);
+            Results.Add(result);
         }
 
-        public int PlayGame(decimal StartingBalance, decimal BettingAmount)
+        public List<BlackjackGameResult> PlayGame(decimal StartingBalance, decimal BettingAmount)
         {
-            Player player = InitializePlayer(StartingBalance, BettingAmount);
-            int totalRounds = 0;
-            while (PlayRound(player))
-            {
-                totalRounds++;
+            Player player = new Player(StartingBalance, BettingAmount);
+            while (player.CanBet()) {
+                PlayRound(player);
             }
-            return totalRounds;
+            return Results;
         }
     }
 }
