@@ -17,9 +17,9 @@ namespace CasinoSimulationApi.Controllers
         }
 
         [HttpGet("test")]
-        public ActionResult<Decision> Test(int PlayerCardOne, int PlayerCardTwo, int DealerFaceUpCard)
+        public ActionResult<int> Test(decimal InitalBalance, decimal BettingAmount)
         {
-            return _blackjackService.GetDecision(PlayerCardOne, PlayerCardTwo, DealerFaceUpCard);
+            return _blackjackService.PlayGame(InitalBalance, BettingAmount);
         }
     }
 }

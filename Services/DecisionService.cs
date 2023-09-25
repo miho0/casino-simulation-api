@@ -21,7 +21,6 @@ namespace CasinoSimulationApi.Data
                 { "12-4", Decision.Stand },
                 { "12-5", Decision.Stand },
                 { "12-6", Decision.Stand },
-
             };
         }
 
@@ -36,6 +35,10 @@ namespace CasinoSimulationApi.Data
         {
             int PlayerTotal = game.PlayerCards.Sum();
             int DealerFaceUpCard = game.DealerFaceUpCard;
+            if (DealerFaceUpCard == 1)
+            {
+                DealerFaceUpCard = 11;
+            }
 
             if (PlayerTotal < 9)
             {
@@ -90,7 +93,7 @@ namespace CasinoSimulationApi.Data
 
             if (PlayerTotal == 9)
             {
-                if (DealerFaceUpCard > 7)
+                if (DealerFaceUpCard > 6)
                 {
                     return Decision.Hit;
                 }
