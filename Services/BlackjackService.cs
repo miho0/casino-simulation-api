@@ -1,9 +1,16 @@
-﻿using CasinoSimulationApi.Models;
+﻿using CasinoSimulationApi.Data;
+using CasinoSimulationApi.Models;
 
 namespace CasinoSimulationApi.Services
 {
     public class BlackjackService
     {
+        private readonly DecisionService _decisionService;
+
+        public BlackjackService(DecisionService decisionService)
+        {
+            _decisionService = decisionService;
+        }
         
         // returns the next card value
         public int GetNextCard()
@@ -66,6 +73,11 @@ namespace CasinoSimulationApi.Services
                 totalRounds++;
             }
             return totalRounds;
+        }
+
+        public Decision GetDecision(int PlayerCardOne, int PlayerCardTwo, int DealerFaceUpCard)
+        {
+            return _decisionService.Decide(new BlackjackGame(DealerFaceUpCard, 1, new List<int> { PlayerCardOne, PlayerCardTwo }));
         }
     }
 }

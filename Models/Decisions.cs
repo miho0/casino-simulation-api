@@ -1,6 +1,10 @@
 ﻿namespace CasinoSimulationApi.Models
 {
-    public class Decisions
+    public enum Decision
     {
+        Hit,
+        Stand,
+        Double,
+        Error
     }
 }

@@ -1,3 +1,4 @@
+using CasinoSimulationApi.Data;
 using CasinoSimulationApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,6 +11,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddSingleton<BlackjackService>();
+builder.Services.AddSingleton<DecisionService>();
 
 var app = builder.Build();
 
