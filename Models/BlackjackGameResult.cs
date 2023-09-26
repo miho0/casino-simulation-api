@@ -7,7 +7,8 @@
         DealerWon,
         PlayerBusted,
         DealerBusted,
-        Push
+        Push,
+        None
     }
 
     public class BlackjackGameResult
@@ -42,16 +43,16 @@
             }
         }
 
-        public BlackjackGameResult()
+        public BlackjackGameResult(Result result, decimal bet, bool doubleBet, decimal endBalance, List<int> playerCards, List<int> dealerCards, int playerTotal, int dealerTotal)
         {
-            Result = "";
-            Double = false;
-            Bet = 0;
-            EndBalance = 0;
-            PlayerCards = new List<int>();
-            DealerCards = new List<int>();
-            PlayerTotal = 0;
-            DealerTotal = 0;
+            Result = GetResultString(result);
+            Bet = bet;
+            Double = doubleBet;
+            EndBalance = endBalance;
+            PlayerCards = playerCards;
+            DealerCards = dealerCards;
+            PlayerTotal = playerTotal;
+            DealerTotal = dealerTotal;
         }
 
         public void SetResult(Result result)
