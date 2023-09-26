@@ -39,7 +39,6 @@
 
         }
 
-        // TODO implement this for the dealer as well
         public void AddCardPlayer(int card)
         {
             PlayerCards.Add(card);
@@ -99,7 +98,17 @@
             }
             return total;
         }
+
+        public int CalculateTotalPlayerWithoutAce()
+        {
+            if (SoftTotalPlayer)
+            {
+                return PlayerCards.Sum() - PlayerCards[AceIndexPlayer];
+            }
+
+            return -1;
+        }
     }
 }
 
-// TODO soft totals for dealer
+// TODO handle case where player has two or more aces
