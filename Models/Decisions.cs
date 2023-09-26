@@ -5,6 +5,7 @@
         Hit,
         Stand,
         Double,
+        Split
         Error
     }
 }

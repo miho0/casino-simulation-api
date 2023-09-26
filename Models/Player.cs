@@ -4,18 +4,34 @@
     {
         public decimal Balance { get; set; }
         public decimal BettingAmount { get; set; }
+        public decimal Goal { get; set; }
         public decimal CurrentBet { get; set; }
 
-        public Player(decimal balance, decimal bettingAmount)
+        public Player(decimal balance, decimal bettingAmount, decimal goal)
         {
             Balance = balance;
             BettingAmount = bettingAmount;
             CurrentBet = bettingAmount;
+            Goal = goal;
         }
 
         public bool CanBet()
         {
-            return Balance >= CurrentBet;
+            if (Balance >= CurrentBet)
+            {
+                return true;
+            }
+            if (Balance == 0)
+            {
+                return false;
+            }
+            CurrentBet = Balance;
+            return true;
+        }
+
+        public bool GoalReached()
+        {
+            return Balance >= Goal;
         }
 
         public void PlaceBet()

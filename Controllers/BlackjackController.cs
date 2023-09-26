@@ -20,9 +20,9 @@ namespace CasinoSimulationApi.Controllers
         }
 
         [HttpGet("test")]
-        public ActionResult<List<BlackjackGameResult>> Test(decimal InitalBalance, decimal BettingAmount)
+        public ActionResult<List<BlackjackGameResult>> Test(decimal InitalBalance, decimal BettingAmount, decimal Goal)
         {
-            return _blackjackService.PlayGame(InitalBalance, BettingAmount);
+            return _blackjackService.PlayGame(InitalBalance, BettingAmount, Goal);
         }
 
         [HttpGet("test2")]

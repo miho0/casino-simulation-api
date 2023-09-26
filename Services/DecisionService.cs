@@ -3,9 +3,12 @@ using System.Reflection.Metadata.Ecma335;
 
 namespace CasinoSimulationApi.Data
 {
+    // for now we assume DAS is not offered
+    // IDEA: ace mode
     public class DecisionService
     {
         public Dictionary<string, Decision> DecisionDictionary { get; set; }
+        public Dictionary<string, bool> ShouldSplitDictionary { get; set; }
 
         public DecisionService()
         {
@@ -57,12 +60,41 @@ namespace CasinoSimulationApi.Data
                 { "2-5s", Decision.Double },
                 { "2-6s", Decision.Double },
             };
+
+            ShouldSplitDictionary = new Dictionary<string, bool>
+            {
+                { "18-7", false },
+                { "18-8", true },
+                { "18-9", true },
+                { "18-10", false },
+                { "18-1", false },
+                { "14-7", true },
+                { "12-2", false },
+                { "12-3", true },
+                { "12-4", true },
+                { "12-5", true },
+                { "12-6", true },
+                { "12-7", false },
+                { "6-2", false },
+                { "6-3", false },
+                { "6-4", true },
+                { "6-5", true },
+                { "6-6", true },
+                { "6-7", true },
+                { "4-2", false },
+                { "4-3", false },
+                { "4-4", true },
+                { "4-5", true },
+                { "4-6", true },
+                { "4-7", true },
+
+            };
         }
 
         // string format: "PlayerTotal-DealerFaceUpCard"
-        public Decision GetDecisionFromDictionary(int PlayerTotal, int DealerFaceUpCard, bool soft = false)
+        public Decision GetDecisionFromDictionary(int playerTotal, int dealerFaceUpCard, bool soft = false)
         {
-            string key = $"{PlayerTotal}-{DealerFaceUpCard}";
+            string key = $"{playerTotal}-{dealerFaceUpCard}";
             if (soft)
             {
                 key += "s";
@@ -70,8 +102,19 @@ namespace CasinoSimulationApi.Data
             return DecisionDictionary[key];
         }
 
+        public bool GetShouldSplitFromDictionary(int playerTotal, int dealerFaceUpCard)
+        {
+            string key = $"{playerTotal}-{dealerFaceUpCard}";
+            return ShouldSplitDictionary[key];
+        }
+
         public Decision Decide(BlackjackGame game)
         {
+            if (game.IsPairPlayer)
+            {
+                if(ShouldSplit(game)) return Decision.Split;
+                else return DecideRegular(game);
+            }
             if (game.SoftTotalPlayer == true)
             {
                 return DecideSoft(game);
@@ -183,6 +226,33 @@ namespace CasinoSimulationApi.Data
             }
 
             return GetDecisionFromDictionary(playerTotalWithoutAce, dealerFaceUpCard, true);
+        }
+
+        public bool ShouldSplit(BlackjackGame game)
+        {
+            int card = game.PlayerCards[0];
+            int dealerFaceUpCard = game.DealerFaceUpCard;
+            if (card == 1 || card == 8)
+            {
+                return true;
+            }
+
+            if (card == 10 || card == 5 || card == 4)
+            {
+                return false;
+            }
+
+            if (card > 6 && dealerFaceUpCard < 7)
+            {
+                return true;
+            }
+
+            if (card < 8 && dealerFaceUpCard > 7)
+            {
+                return false;
+            }
+
+            return GetShouldSplitFromDictionary(card*2, dealerFaceUpCard);
         }
     }
 }

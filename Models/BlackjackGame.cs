@@ -7,6 +7,7 @@
         public List<int> PlayerCards { get; set; }
         public bool SoftTotalPlayer { get; set; }
         public int AceIndexPlayer { get; set; }
+        public bool IsPairPlayer { get; set; }
         public bool SoftTotalDealer { get; set; }
         public int AceIndexDealer { get; set; }
 
@@ -15,6 +16,11 @@
             DealerFaceUpCard = dealerFaceUpCard;
             DealerCards = new List<int> { dealerFaceDownCard, dealerFaceUpCard };
             PlayerCards = playerCards;
+
+            if (PlayerCards[0] == PlayerCards[1])
+            {
+                IsPairPlayer = true;
+            }
 
             // if there is an ace in the player's hand, it is a soft total
             foreach(int card in playerCards)

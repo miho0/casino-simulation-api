@@ -75,6 +75,22 @@ namespace CasinoSimulationApi.Services
             Decision decision = _decisionService.Decide(game);
             bool hasHit = false;
 
+            if (decision == Decision.Double)
+            {
+                if (player.CanBet())
+                {
+                    player.Double();
+                    isDouble = true;
+                    int newCard = GetNextCard();
+                    game.AddCardPlayer(newCard);
+                    decision = Decision.Stand;
+                } else
+                {
+                    decision = Decision.Hit;
+                }
+
+            }
+
             while (decision == Decision.Hit || (decision == Decision.Double && hasHit))
             {
                 int newCard = GetNextCard();
@@ -89,14 +105,6 @@ namespace CasinoSimulationApi.Services
 
                 decision = _decisionService.Decide(game);
                 hasHit = true;
-            }
-
-            if (decision == Decision.Double)
-            {
-                player.Double();
-                isDouble = true;
-                int newCard = GetNextCard();
-                game.AddCardPlayer(newCard);
             }
 
             playerTotal = game.CalculateTotalPlayer();
@@ -134,10 +142,10 @@ namespace CasinoSimulationApi.Services
             throw new Exception("Something went wrong");
         }
 
-        public List<BlackjackGameResult> PlayGame(decimal StartingBalance, decimal BettingAmount)
+        public List<BlackjackGameResult> PlayGame(decimal StartingBalance, decimal BettingAmount, decimal Goal)
         {
-            Player player = new Player(StartingBalance, BettingAmount);
-            while (player.CanBet()) {
+            Player player = new Player(StartingBalance, BettingAmount, Goal);
+            while (player.CanBet() && !player.GoalReached()) {
                 Results.Add(PlayRound(player));
             }
             return Results;
