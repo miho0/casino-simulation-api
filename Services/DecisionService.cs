@@ -63,30 +63,30 @@ namespace CasinoSimulationApi.Data
 
             ShouldSplitDictionary = new Dictionary<string, bool>
             {
-                { "18-7", false },
-                { "18-8", true },
-                { "18-9", true },
-                { "18-10", false },
-                { "18-1", false },
-                { "14-7", true },
-                { "12-2", false },
-                { "12-3", true },
-                { "12-4", true },
-                { "12-5", true },
-                { "12-6", true },
-                { "12-7", false },
+                { "9-7", false },
+                { "9-8", true },
+                { "9-9", true },
+                { "9-10", false },
+                { "9-1", false },
+                { "7-7", true },
                 { "6-2", false },
-                { "6-3", false },
+                { "6-3", true },
                 { "6-4", true },
                 { "6-5", true },
                 { "6-6", true },
-                { "6-7", true },
-                { "4-2", false },
-                { "4-3", false },
-                { "4-4", true },
-                { "4-5", true },
-                { "4-6", true },
-                { "4-7", true },
+                { "6-7", false },
+                { "3-2", false },
+                { "3-3", false },
+                { "3-4", true },
+                { "3-5", true },
+                { "3-6", true },
+                { "3-7", true },
+                { "2-2", false },
+                { "2-3", false },
+                { "2-4", true },
+                { "2-5", true },
+                { "2-6", true },
+                { "2-7", true },
 
             };
         }
@@ -102,15 +102,23 @@ namespace CasinoSimulationApi.Data
             return DecisionDictionary[key];
         }
 
-        public bool GetShouldSplitFromDictionary(int playerTotal, int dealerFaceUpCard)
+        public bool GetShouldSplitFromDictionary(int playerTotal, int dealerFaceUpCard, BlackjackGame game)
         {
-            string key = $"{playerTotal}-{dealerFaceUpCard}";
-            return ShouldSplitDictionary[key];
+            try
+            {
+                string key = $"{playerTotal}-{dealerFaceUpCard}";
+                return ShouldSplitDictionary[key];
+            } catch (System.Exception)
+            {
+                game.PlayerCards.ForEach(card => System.Console.WriteLine(card));
+                throw;
+            }
+
         }
 
-        public Decision Decide(BlackjackGame game)
+        public Decision Decide(BlackjackGame game, bool canSplit = true)
         {
-            if (game.IsPairPlayer)
+            if (game.IsPairPlayer && canSplit)
             {
                 if(ShouldSplit(game)) return Decision.Split;
                 else return DecideRegular(game);
@@ -126,12 +134,8 @@ namespace CasinoSimulationApi.Data
 
         public Decision DecideRegular(BlackjackGame game)
         {
-            int playerTotal = game.PlayerCards.Sum();
-            int dealerFaceUpCard = game.DealerFaceUpCard;
-            if (dealerFaceUpCard == 1)
-            {
-                dealerFaceUpCard = 11;
-            }
+            int playerTotal = game.CalculateTotalPlayer();
+            int dealerFaceUpCard = EliminateAce(game.DealerFaceUpCard);
 
             if (playerTotal < 9)
             {
@@ -201,7 +205,7 @@ namespace CasinoSimulationApi.Data
         public Decision DecideSoft(BlackjackGame game)
         {
             int playerTotalWithoutAce = game.CalculateTotalPlayerWithoutAce();
-            int dealerFaceUpCard = game.DealerFaceUpCard;
+            int dealerFaceUpCard = EliminateAce(game.DealerFaceUpCard);
 
             if (playerTotalWithoutAce == 1)
             {
@@ -230,9 +234,9 @@ namespace CasinoSimulationApi.Data
 
         public bool ShouldSplit(BlackjackGame game)
         {
-            int card = game.PlayerCards[0];
-            int dealerFaceUpCard = game.DealerFaceUpCard;
-            if (card == 1 || card == 8)
+            int card = EliminateAce(game.PlayerCards[0]);
+            int dealerFaceUpCard = EliminateAce(game.DealerFaceUpCard);
+            if (card == 11 || card == 8)
             {
                 return true;
             }
@@ -252,7 +256,13 @@ namespace CasinoSimulationApi.Data
                 return false;
             }
 
-            return GetShouldSplitFromDictionary(card*2, dealerFaceUpCard);
+            return GetShouldSplitFromDictionary(card, dealerFaceUpCard, game);
+        }
+
+        int EliminateAce(int card)
+        {
+            if (card == 1) return 11;
+            else return card;
         }
     }
 }

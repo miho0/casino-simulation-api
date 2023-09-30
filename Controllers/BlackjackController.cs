@@ -25,11 +25,11 @@ namespace CasinoSimulationApi.Controllers
             return _blackjackService.PlayGame(InitalBalance, BettingAmount, Goal);
         }
 
-        [HttpGet("test2")]
-        public ActionResult<Decision> Test2(int dealerFaceUpCard, int p1, int p2)
-        {
-            BlackjackGame game = new BlackjackGame(dealerFaceUpCard, 10, new List<int> { p1, p2 });
-            return _decisionService.Decide(game);
-        }
+        //[HttpGet("test2")]
+        //public ActionResult<Decision> Test2(int dealerFaceUpCard, int p1, int p2)
+        //{
+        //    BlackjackGame game = new BlackjackGame(dealerFaceUpCard, 10, new List<int> { p1, p2 }, false);
+        //    return _decisionService.Decide(game);
+        //}
     }
 }

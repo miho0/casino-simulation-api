@@ -12,77 +12,76 @@ namespace CasinoSimulationApi.Services
         {
             _decisionService = decisionService;
         }
-        
-        // returns the next card value
-        public int GetNextCard()
-        {
-            Random rand = new Random();
-            int num = rand.Next(1, 14);
-            if (num > 10)
-            {
-                return 10;
-            }
-            else
-            {
-                return num;
-            }
-        } 
 
 
         // returns a new BlackjackGame object, which contains all cards for the game
-        public BlackjackGame GetNewGame()
+        public BlackjackGame GetNewGame(BlackjackGame previousGame = null)
         {
-            List<int> playerCards = new List<int>();
-            playerCards.Add(GetNextCard());
-            int dealerFaceDownCard = GetNextCard();
-            playerCards.Add(GetNextCard());
-            int dealerFaceUpCard = GetNextCard();
-            return new BlackjackGame(dealerFaceUpCard, dealerFaceDownCard, playerCards);
+            if (previousGame != null)
+            {;
+                return new BlackjackGame(previousGame);
+
+            } else
+            {
+                return new BlackjackGame();
+            }
         }
 
         // plays a round and return weather or not the player was able to play
-        public BlackjackGameResult PlayRound(Player player)
+        public BlackjackGameResult PlayRound(BlackjackGame game, Player player)
         {
             player.PlaceBet();
-            BlackjackGame game = GetNewGame();
 
             int playerTotal = game.CalculateTotalPlayer();
             int dealerTotal = game.CalculateTotalDealer();
 
             decimal bet = player.CurrentBet;
-            bool isDouble = false;
-
+            Decision initialDecision = Decision.None;
 
             if (playerTotal == 21)
             {
                 if (dealerTotal == 21)
                 {
                     player.Tie();
-                    return new BlackjackGameResult(Result.Push, bet, isDouble, player.Balance, game.PlayerCards, game.DealerCards, playerTotal, dealerTotal);
+                    return new BlackjackGameResult(Result.Push, bet, initialDecision, player.Balance, game.PlayerCards, game.DealerCards, playerTotal, dealerTotal);
                 } else
                 {
                     player.Blackjack();
-                    return new BlackjackGameResult(Result.Blackjack, bet, isDouble, player.Balance, game.PlayerCards, game.DealerCards, playerTotal, dealerTotal);
+                    return new BlackjackGameResult(Result.Blackjack, bet, initialDecision, player.Balance, game.PlayerCards, game.DealerCards, playerTotal, dealerTotal);
                 }
             }
 
             if (dealerTotal == 21)
             {
                 player.Lost();
-                return new BlackjackGameResult(Result.DealerWon, bet, isDouble, player.Balance, game.PlayerCards, game.DealerCards, playerTotal, dealerTotal);
+                return new BlackjackGameResult(Result.DealerWon, bet, initialDecision, player.Balance, game.PlayerCards, game.DealerCards, playerTotal, dealerTotal);
             }
 
             Decision decision = _decisionService.Decide(game);
+            initialDecision = decision;
+
             bool hasHit = false;
+
+            if (decision == Decision.Split)
+            {
+                if (player.CanBet() && game.CanSplit())
+                {
+                    game.Split();
+                    BlackjackGame newGame = GetNewGame(game);
+                    Results.Add(PlayRound(newGame, player));
+                    
+                } else
+                {
+                    decision = _decisionService.Decide(game, false);
+                }
+            }
 
             if (decision == Decision.Double)
             {
                 if (player.CanBet())
                 {
                     player.Double();
-                    isDouble = true;
-                    int newCard = GetNextCard();
-                    game.AddCardPlayer(newCard);
+                    game.AddCardPlayer();
                     decision = Decision.Stand;
                 } else
                 {
@@ -93,14 +92,13 @@ namespace CasinoSimulationApi.Services
 
             while (decision == Decision.Hit || (decision == Decision.Double && hasHit))
             {
-                int newCard = GetNextCard();
-                game.PlayerCards.Add(newCard);
-                playerTotal += newCard;
+                game.AddCardPlayer();
+                playerTotal = game.CalculateTotalPlayer();
 
                 if (playerTotal > 21)
                 {
                     player.Lost();
-                    return new BlackjackGameResult(Result.PlayerBusted, bet, isDouble, player.Balance, game.PlayerCards, game.DealerCards, playerTotal, dealerTotal);
+                    return new BlackjackGameResult(Result.PlayerBusted, bet, initialDecision, player.Balance, game.PlayerCards, game.DealerCards, playerTotal, dealerTotal);
                 }
 
                 decision = _decisionService.Decide(game);
@@ -111,33 +109,32 @@ namespace CasinoSimulationApi.Services
 
             while (dealerTotal < 17)
             {
-                int newCard = GetNextCard();
-                game.AddCardDealer(newCard);
+                game.AddCardDealer();
                 dealerTotal = game.CalculateTotalDealer();
             }
 
             if (dealerTotal > 21)
             {
                 player.Won();
-                return new BlackjackGameResult(Result.DealerBusted, bet, isDouble, player.Balance, game.PlayerCards, game.DealerCards, playerTotal, dealerTotal);
+                return new BlackjackGameResult(Result.DealerBusted, bet, initialDecision, player.Balance, game.PlayerCards, game.DealerCards, playerTotal, dealerTotal);
             }
 
             if (playerTotal > dealerTotal)
             {
                 player.Won();
-                return new BlackjackGameResult(Result.PlayerWon, bet, isDouble, player.Balance, game.PlayerCards, game.DealerCards, playerTotal, dealerTotal);
+                return new BlackjackGameResult(Result.PlayerWon, bet, initialDecision, player.Balance, game.PlayerCards, game.DealerCards, playerTotal, dealerTotal);
             }
 
             if (playerTotal == dealerTotal)
             {
                 player.Tie();
-                return new BlackjackGameResult(Result.Push, bet, isDouble, player.Balance, game.PlayerCards, game.DealerCards, playerTotal, dealerTotal);
+                return new BlackjackGameResult(Result.Push, bet, initialDecision, player.Balance, game.PlayerCards, game.DealerCards, playerTotal, dealerTotal);
             }
 
             if (dealerTotal > playerTotal)
             {
                 player.Lost();
-                return new BlackjackGameResult(Result.DealerWon, bet, isDouble, player.Balance, game.PlayerCards, game.DealerCards, playerTotal, dealerTotal);
+                return new BlackjackGameResult(Result.DealerWon, bet, initialDecision, player.Balance, game.PlayerCards, game.DealerCards, playerTotal, dealerTotal);
             }
             throw new Exception("Something went wrong");
         }
@@ -146,7 +143,8 @@ namespace CasinoSimulationApi.Services
         {
             Player player = new Player(StartingBalance, BettingAmount, Goal);
             while (player.CanBet() && !player.GoalReached()) {
-                Results.Add(PlayRound(player));
+                BlackjackGame game = GetNewGame();
+                Results.Add(PlayRound(game, player));
             }
             return Results;
         }

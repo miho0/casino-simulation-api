@@ -10,43 +10,69 @@
         public bool IsPairPlayer { get; set; }
         public bool SoftTotalDealer { get; set; }
         public int AceIndexDealer { get; set; }
+        public bool IsSplitted { get; set; }
 
-        public BlackjackGame(int dealerFaceUpCard, int dealerFaceDownCard, List<int> playerCards)
+        public BlackjackGame()
         {
-            DealerFaceUpCard = dealerFaceUpCard;
-            DealerCards = new List<int> { dealerFaceDownCard, dealerFaceUpCard };
-            PlayerCards = playerCards;
+            InitGame();
 
             if (PlayerCards[0] == PlayerCards[1])
             {
                 IsPairPlayer = true;
             }
 
-            // if there is an ace in the player's hand, it is a soft total
-            foreach(int card in playerCards)
-            {
-                if (card == 1)
-                {
-                    SoftTotalPlayer = true;
-                    AceIndexPlayer = PlayerCards.IndexOf(card);
-                }
-            }
-
-            // same goes for the dealer
-            foreach (int card in DealerCards)
-            {
-                if (card == 1)
-                {
-                    SoftTotalDealer = true;
-                    AceIndexDealer = DealerCards.IndexOf(card);
-                }
-            }
-
-
+            IsSplitted = false;
         }
 
-        public void AddCardPlayer(int card)
+        // when the player has split, some data has to be copied from the original game
+        public BlackjackGame(BlackjackGame previousGame)
         {
+            DealerFaceUpCard = previousGame.DealerFaceUpCard;
+            DealerCards = previousGame.DealerCards;
+            PlayerCards = new List<int>{ previousGame.PlayerCards[0]} ;
+            if (PlayerCards[0] == 1)
+            {
+                SoftTotalPlayer = true;
+                AceIndexPlayer = 0;
+            }
+
+            if (DealerCards[0] == 1)
+            {
+                SoftTotalDealer = true;
+                AceIndexDealer = 0;
+            }
+            IsSplitted = true;
+        }
+
+        public void InitGame()
+        {
+            AddCardPlayer();
+            AddCardDealer();
+            AddCardPlayer();
+            AddCardDealer(); // has to be done in this order
+        }
+
+        public int GetNextCard()
+        {
+            Random rand = new Random();
+            int num = rand.Next(1, 14);
+            if (num > 10)
+            {
+                return 10;
+            }
+            else
+            {
+                return num;
+            }
+        }
+
+        public void AddCardPlayer()
+        {
+            if (PlayerCards == null)
+            {
+                PlayerCards = new List<int>();
+            }
+            int card = GetNextCard();
             PlayerCards.Add(card);
             if (!SoftTotalPlayer && card == 1)
             {
@@ -75,8 +101,14 @@
             return total;
         }
 
-        public void AddCardDealer(int card)
+        public void AddCardDealer()
         {
+            int card = GetNextCard();
+            if (DealerCards == null)
+            {
+                DealerCards = new List<int>();
+                DealerFaceUpCard = card;
+            }
             DealerCards.Add(card);
             if (!SoftTotalDealer && card == 1)
             {
@@ -113,6 +145,18 @@
             }
 
             return -1;
+        }
+
+        public bool CanSplit()
+        {
+            return IsSplitted == false && IsPairPlayer;
+        }
+
+        public void Split()
+        {
+            IsSplitted = true;
+            PlayerCards.Remove(1);
+            AddCardPlayer();
         }
     }
 }

@@ -15,7 +15,7 @@
     { 
         public string Result { get; set; }
         public decimal Bet { get; set; }
-        public bool Double { get; set; }
+        public string InitialDecision { get; set; }
         public decimal EndBalance { get; set; }
         public List<int> PlayerCards { get; set; }
         public List<int> DealerCards { get; set; }
@@ -43,21 +43,16 @@
             }
         }
 
-        public BlackjackGameResult(Result result, decimal bet, bool doubleBet, decimal endBalance, List<int> playerCards, List<int> dealerCards, int playerTotal, int dealerTotal)
+        public BlackjackGameResult(Result result, decimal bet, Decision initialDecision, decimal endBalance, List<int> playerCards, List<int> dealerCards, int playerTotal, int dealerTotal)
         {
-            Result = GetResultString(result);
+            Result = result.ToString();
             Bet = bet;
-            Double = doubleBet;
+            InitialDecision = initialDecision.ToString();
             EndBalance = endBalance;
             PlayerCards = playerCards;
             DealerCards = dealerCards;
             PlayerTotal = playerTotal;
             DealerTotal = dealerTotal;
-        }
-
-        public void SetResult(Result result)
-        {
-            Result = GetResultString(result);
         }
     }
 }

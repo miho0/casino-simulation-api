@@ -5,7 +5,8 @@
         Hit,
         Stand,
         Double,
-        Split
+        Split,
+        None,
         Error
     }
 }
