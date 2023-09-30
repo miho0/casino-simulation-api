@@ -67,12 +67,13 @@ namespace CasinoSimulationApi.Services
                 if (player.CanBet() && game.CanSplit())
                 {
                     game.Split();
+                    decision = _decisionService.Decide(game);
                     BlackjackGame newGame = GetNewGame(game);
                     Results.Add(PlayRound(newGame, player));
                     
                 } else
                 {
-                    decision = _decisionService.Decide(game, false);
+                    decision = _decisionService.Decide(game);
                 }
             }
 
@@ -139,7 +140,7 @@ namespace CasinoSimulationApi.Services
             throw new Exception("Something went wrong");
         }
 
-        public List<BlackjackGameResult> PlayGame(decimal StartingBalance, decimal BettingAmount, decimal Goal)
+        public List<BlackjackGameResult> GetGameResults(decimal StartingBalance, decimal BettingAmount, decimal Goal)
         {
             Player player = new Player(StartingBalance, BettingAmount, Goal);
             while (player.CanBet() && !player.GoalReached()) {
@@ -147,6 +148,31 @@ namespace CasinoSimulationApi.Services
                 Results.Add(PlayRound(game, player));
             }
             return Results;
+        }
+
+        public ProbabilityInformation GetProbabilityInformation(decimal StartingBalance, decimal BettingAmount, decimal Goal, int Itterations)
+        {
+            int successes = 0;
+            int roundsPlayed = 0;
+            for (int i = 0; i < Itterations; i++)
+            {
+                Player player = new Player(StartingBalance, BettingAmount, Goal);
+                while (player.CanBet() && !player.GoalReached())
+                {
+                    BlackjackGame game = GetNewGame();
+                    Results.Add(PlayRound(game, player));
+                    roundsPlayed++;
+                }
+
+                if (player.CanBet())
+                {
+                    successes++;
+                }
+            }
+            return new ProbabilityInformation { 
+                Probability = ((decimal) successes / Itterations) * 100,
+                AverageRoundsPlayed = roundsPlayed / Itterations
+            };
         }
     }
 }

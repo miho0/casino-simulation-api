@@ -33,7 +33,7 @@ namespace CasinoSimulationApi.Data
                 { "7-8s", Decision.Stand },
                 { "7-9s", Decision.Hit },
                 { "7-10s", Decision.Hit },
-                { "7-1s", Decision.Hit },
+                { "7-11s", Decision.Hit },
                 { "6-2s", Decision.Hit },
                 { "6-3s", Decision.Double },
                 { "6-4s", Decision.Double },
@@ -67,7 +67,7 @@ namespace CasinoSimulationApi.Data
                 { "9-8", true },
                 { "9-9", true },
                 { "9-10", false },
-                { "9-1", false },
+                { "9-11", false },
                 { "7-7", true },
                 { "6-2", false },
                 { "6-3", true },
@@ -116,12 +116,11 @@ namespace CasinoSimulationApi.Data
 
         }
 
-        public Decision Decide(BlackjackGame game, bool canSplit = true)
+        public Decision Decide(BlackjackGame game)
         {
-            if (game.IsPairPlayer && canSplit)
+            if (game.IsPairPlayer && game.CanSplit())
             {
-                if(ShouldSplit(game)) return Decision.Split;
-                else return DecideRegular(game);
+                return ShouldSplit(game) ? Decision.Split : Decision.None;
             }
             if (game.SoftTotalPlayer == true)
             {
@@ -204,10 +203,10 @@ namespace CasinoSimulationApi.Data
 
         public Decision DecideSoft(BlackjackGame game)
         {
-            int playerTotalWithoutAce = game.CalculateTotalPlayerWithoutAce();
+            int playerTotalWithoutAce = EliminateAce(game.CalculateTotalPlayerWithoutAce());
             int dealerFaceUpCard = EliminateAce(game.DealerFaceUpCard);
 
-            if (playerTotalWithoutAce == 1)
+            if (playerTotalWithoutAce == 11)
             {
                 if (dealerFaceUpCard > 6)
                 {
@@ -215,7 +214,7 @@ namespace CasinoSimulationApi.Data
                 }
                 else
                 {
-                    return GetDecisionFromDictionary(playerTotalWithoutAce, dealerFaceUpCard);
+                    return GetDecisionFromDictionary(game.CalculateTotalPlayer(), dealerFaceUpCard);
                 }
             }
 
