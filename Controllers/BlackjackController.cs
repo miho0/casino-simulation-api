@@ -20,15 +20,15 @@ namespace CasinoSimulationApi.Controllers
         }
 
         [HttpGet("GetGameResults")]
-        public ActionResult<List<BlackjackGameResult>> GetGameResults(decimal InitalBalance, decimal BettingAmount, decimal Goal)
+        public ActionResult<List<BlackjackGameResult>> GetGameResults(decimal InitialBalance, decimal BettingAmount, decimal Goal)
         {
-            return _blackjackService.GetGameResults(InitalBalance, BettingAmount, Goal);
+            return _blackjackService.GetGameResults(new GetGameResultsDto(InitialBalance, BettingAmount, Goal));
         }
 
         [HttpGet("GetProbability")]
-        public ActionResult<ProbabilityInformation> GetProbability(decimal InitalBalance, decimal BettingAmount, decimal Goal, int Itterations)
+        public ActionResult<ProbabilityInformation> GetProbability(decimal InitialBalance, decimal BettingAmount, decimal Goal, int Itterations)
         {
-            return _blackjackService.GetProbabilityInformation(InitalBalance, BettingAmount, Goal, Itterations);
+            return _blackjackService.GetProbabilityInformation(new GetProbabilityInformationDto(InitialBalance, BettingAmount, Goal, Itterations));
         }
 
         //[HttpGet("test2")]
