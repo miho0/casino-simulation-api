@@ -22,20 +22,20 @@ namespace CasinoSimulationApi.Controllers
         [HttpGet("GetGameResults")]
         public ActionResult<List<BlackjackGameResult>> GetGameResults(decimal InitialBalance, decimal BettingAmount, decimal Goal)
         {
-            return _blackjackService.GetGameResults(new GetGameResultsDto(InitialBalance, BettingAmount, Goal));
+            return _blackjackService.GetGameResults(InitialBalance, BettingAmount, Goal);
         }
 
         [HttpGet("GetProbability")]
         public ActionResult<ProbabilityInformation> GetProbability(decimal InitialBalance, decimal BettingAmount, decimal Goal, int Itterations)
         {
-            return _blackjackService.GetProbabilityInformation(new GetProbabilityInformationDto(InitialBalance, BettingAmount, Goal, Itterations));
+            return _blackjackService.GetProbabilityInformation(InitialBalance, BettingAmount, Goal, Itterations);
         }
 
-        //[HttpGet("test2")]
-        //public ActionResult<Decision> Test2(int dealerFaceUpCard, int p1, int p2)
-        //{
-        //    BlackjackGame game = new BlackjackGame(dealerFaceUpCard, 10, new List<int> { p1, p2 }, false);
-        //    return _decisionService.Decide(game);
-        //}
+        [HttpGet("testDecision")]
+        public ActionResult<Decision> TestDecision(int d1, int d2, int p1, int p2)
+        {
+            BlackjackGame game = new BlackjackGame(new List<int> { d1, d2 }, new List<int> { p1, p2 });
+            return _decisionService.Decide(game);
+        }
     }
 }

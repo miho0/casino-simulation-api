@@ -18,10 +18,12 @@ namespace CasinoSimulationApi.Services
         public BlackjackGame GetNewGame(BlackjackGame previousGame = null)
         {
             if (previousGame != null)
-            {;
+            {
+                ;
                 return new BlackjackGame(previousGame);
 
-            } else
+            }
+            else
             {
                 return new BlackjackGame();
             }
@@ -44,7 +46,8 @@ namespace CasinoSimulationApi.Services
                 {
                     player.Tie();
                     return new BlackjackGameResult(Result.Push, bet, initialDecision, player.Balance, game.PlayerCards, game.DealerCards, playerTotal, dealerTotal);
-                } else
+                }
+                else
                 {
                     player.Blackjack();
                     return new BlackjackGameResult(Result.Blackjack, bet, initialDecision, player.Balance, game.PlayerCards, game.DealerCards, playerTotal, dealerTotal);
@@ -54,7 +57,7 @@ namespace CasinoSimulationApi.Services
             if (dealerTotal == 21)
             {
                 player.Lost();
-                return new BlackjackGameResult(Result.DealerWon, bet, initialDecision, player.Balance, game.PlayerCards, game.DealerCards, playerTotal, dealerTotal);
+                return new BlackjackGameResult(Result.DealerBlackjack, bet, initialDecision, player.Balance, game.PlayerCards, game.DealerCards, playerTotal, dealerTotal);
             }
 
             Decision decision = _decisionService.Decide(game);
@@ -70,8 +73,9 @@ namespace CasinoSimulationApi.Services
                     decision = _decisionService.Decide(game);
                     BlackjackGame newGame = GetNewGame(game);
                     Results.Add(PlayRound(newGame, player));
-                    
-                } else
+
+                }
+                else
                 {
                     decision = _decisionService.Decide(game);
                 }
@@ -79,12 +83,13 @@ namespace CasinoSimulationApi.Services
 
             if (decision == Decision.Double)
             {
-                if (player.CanBet())
+                if (player.CanDouble())
                 {
                     player.Double();
                     game.AddCardPlayer();
                     decision = Decision.Stand;
-                } else
+                }
+                else
                 {
                     decision = Decision.Hit;
                 }
@@ -140,10 +145,11 @@ namespace CasinoSimulationApi.Services
             throw new Exception("Something went wrong");
         }
 
-        public List<BlackjackGameResult> GetGameResults(GetGameResultsDto getGameResultsDto)
+        public List<BlackjackGameResult> GetGameResults(decimal StartingBalance, decimal BettingAmount, decimal Goal)
         {
-            Player player = new Player(getGameResultsDto.InitialBalance, getGameResultsDto.BettingAmount, getGameResultsDto.Goal);
-            while (player.CanBet() && !player.GoalReached()) {
+            Player player = new Player(StartingBalance, BettingAmount, Goal);
+            while (player.CanBet() && !player.GoalReached())
+            {
                 BlackjackGame game = GetNewGame();
                 Results.Add(PlayRound(game, player));
             }
@@ -152,13 +158,13 @@ namespace CasinoSimulationApi.Services
             return results;
         }
 
-        public ProbabilityInformation GetProbabilityInformation(GetProbabilityInformationDto getProbabilityInformationDto)
+        public ProbabilityInformation GetProbabilityInformation(decimal StartingBalance, decimal BettingAmount, decimal Goal, int Itterations)
         {
             int successes = 0;
             int roundsPlayed = 0;
-            for (int i = 0; i < getProbabilityInformationDto.Itterations; i++)
+            for (int i = 0; i < Itterations; i++)
             {
-                Player player = new Player(getProbabilityInformationDto.InitialBalance, getProbabilityInformationDto.BettingAmount, getProbabilityInformationDto.Goal);
+                Player player = new Player(StartingBalance, BettingAmount, Goal);
                 while (player.CanBet() && !player.GoalReached())
                 {
                     BlackjackGame game = GetNewGame();
@@ -172,9 +178,10 @@ namespace CasinoSimulationApi.Services
                 }
             }
             Results = new List<BlackjackGameResult>();
-            return new ProbabilityInformation { 
-                Probability = ((decimal) successes / getProbabilityInformationDto.Itterations) * 100,
-                AverageRoundsPlayed = roundsPlayed / getProbabilityInformationDto.Itterations
+            return new ProbabilityInformation
+            {
+                Probability = ((decimal)successes / Itterations) * 100,
+                AverageRoundsPlayed = roundsPlayed / Itterations
             };
         }
     }

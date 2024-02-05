@@ -1,4 +1,6 @@
-﻿namespace CasinoSimulationApi.Models
+﻿using CasinoSimulationApi.Models;
+
+namespace CasinoSimulationApi.Models
 {
     public class BlackjackGame
     {
@@ -29,7 +31,7 @@
         {
             DealerFaceUpCard = previousGame.DealerFaceUpCard;
             DealerCards = previousGame.DealerCards;
-            PlayerCards = new List<int>{ previousGame.PlayerCards[0]} ;
+            PlayerCards = new List<int> { previousGame.PlayerCards[0] };
             if (PlayerCards[0] == 1)
             {
                 SoftTotalPlayer = true;
@@ -42,6 +44,13 @@
                 AceIndexDealer = 0;
             }
             IsSplitted = true;
+        }
+
+        public BlackjackGame(List<int> playerCards, List<int> dealerCards)
+        {
+            PlayerCards = playerCards;
+            DealerCards = dealerCards;
+            DealerFaceUpCard = dealerCards[0];
         }
 
         public void InitGame()
@@ -162,3 +171,30 @@
 }
 
 // TODO handle case where player has two or more aces
+// TODO tests
+
+//Result: PlayerWon
+
+//Bet: 30
+
+//Player cards: 11 10
+//Dealer cards: 3 11 5 5
+//Initial decision: Double
+
+
+//Result: DealerBusted
+
+//Bet: 40
+
+//Player cards: 11 10
+//Dealer cards: 3 11 5 5
+//Initial decision: Split
+
+
+//Result: PlayerWon
+
+//Bet: 10
+
+//Player cards: 10 10
+//Dealer cards: 10 7
+//Initial decision: None

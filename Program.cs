@@ -15,10 +15,11 @@ builder.Services.AddSingleton<DecisionService>();
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("CorsPolicy",
-               builder => builder.AllowAnyOrigin()
-                      .AllowAnyMethod()
-                      .AllowAnyHeader());
+    options.AddPolicy("AllowLocalHost", builder =>
+        builder.WithOrigins("http://localhost:4200")
+               .AllowAnyMethod()
+               .AllowAnyHeader()
+    );
 });
 
 var app = builder.Build();
@@ -30,11 +31,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCors("CorsPolicy");
 
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+
+app.UseCors("AllowLocalHost");
 
 app.MapControllers();
 

@@ -7,6 +7,7 @@
         DealerWon,
         PlayerBusted,
         DealerBusted,
+        DealerBlackjack,
         Push,
         None
     }

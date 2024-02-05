@@ -29,6 +29,15 @@
             return true;
         }
 
+        public bool CanDouble()
+        {
+            if (Balance >= CurrentBet)
+            {
+                return true;
+            }
+            return false;
+        }
+
         public bool GoalReached()
         {
             return Balance >= Goal;
