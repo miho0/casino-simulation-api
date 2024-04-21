@@ -30,7 +30,7 @@ namespace CasinoSimulationApi.Services
         }
 
         // plays a round and return weather or not the player was able to play
-        public BlackjackGameResult PlayRound(BlackjackGame game, Player player)
+        public BlackjackGameResult PlayRound(BlackjackGame game, Player player, bool basicStrategy = true)
         {
             player.PlaceBet();
 
@@ -60,7 +60,7 @@ namespace CasinoSimulationApi.Services
                 return new BlackjackGameResult(Result.DealerBlackjack, bet, initialDecision, player.Balance, game.PlayerCards, game.DealerCards, playerTotal, dealerTotal);
             }
 
-            Decision decision = _decisionService.Decide(game);
+            Decision decision = _decisionService.Decide(game, basicStrategy);
             initialDecision = decision;
 
             bool hasHit = false;
@@ -70,14 +70,14 @@ namespace CasinoSimulationApi.Services
                 if (player.CanBet() && game.CanSplit())
                 {
                     game.Split();
-                    decision = _decisionService.Decide(game);
+                    decision = _decisionService.Decide(game, basicStrategy);
                     BlackjackGame newGame = GetNewGame(game);
                     Results.Add(PlayRound(newGame, player));
 
                 }
                 else
                 {
-                    decision = _decisionService.Decide(game);
+                    decision = _decisionService.Decide(game, basicStrategy);
                 }
             }
 
@@ -107,7 +107,7 @@ namespace CasinoSimulationApi.Services
                     return new BlackjackGameResult(Result.PlayerBusted, bet, initialDecision, player.Balance, game.PlayerCards, game.DealerCards, playerTotal, dealerTotal);
                 }
 
-                decision = _decisionService.Decide(game);
+                decision = _decisionService.Decide(game, basicStrategy);
                 hasHit = true;
             }
 
@@ -145,7 +145,7 @@ namespace CasinoSimulationApi.Services
             throw new Exception("Something went wrong");
         }
 
-        public List<BlackjackGameResult> GetGameResults(decimal StartingBalance, decimal BettingAmount, decimal Goal)
+        public List<BlackjackGameResult> GetGameResults(decimal StartingBalance, decimal BettingAmount, decimal Goal, bool BasicStrategy = true)
         {
             Player player = new Player(StartingBalance, BettingAmount, Goal);
             while (player.CanBet() && !player.GoalReached())
@@ -158,17 +158,17 @@ namespace CasinoSimulationApi.Services
             return results;
         }
 
-        public ProbabilityInformation GetProbabilityInformation(decimal StartingBalance, decimal BettingAmount, decimal Goal, int Itterations)
+        public ProbabilityInformation GetProbabilityInformation(decimal StartingBalance, decimal BettingAmount, decimal Goal, int Itterations, bool BasicStrategy = true, bool Martingale = true)
         {
             int successes = 0;
             int roundsPlayed = 0;
             for (int i = 0; i < Itterations; i++)
             {
-                Player player = new Player(StartingBalance, BettingAmount, Goal);
+                Player player = new Player(StartingBalance, BettingAmount, Goal, Martingale);
                 while (player.CanBet() && !player.GoalReached())
                 {
                     BlackjackGame game = GetNewGame();
-                    Results.Add(PlayRound(game, player));
+                    Results.Add(PlayRound(game, player, BasicStrategy));
                     roundsPlayed++;
                 }
 
@@ -178,9 +178,11 @@ namespace CasinoSimulationApi.Services
                 }
             }
             Results = new List<BlackjackGameResult>();
+            decimal probability = ((decimal)successes / Itterations);
             return new ProbabilityInformation
             {
-                Probability = ((decimal)successes / Itterations) * 100,
+                Probability = probability * 100,
+                HouseEdge = (1 - probability * 2) * 100,
                 AverageRoundsPlayed = roundsPlayed / Itterations
             };
         }

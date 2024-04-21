@@ -116,8 +116,12 @@ namespace CasinoSimulationApi.Data
 
         }
 
-        public Decision Decide(BlackjackGame game)
+        public Decision Decide(BlackjackGame game, bool BasicStrategy = true)
         {
+            if (!BasicStrategy)
+            {
+                return GetRandomDecision();
+            }
             if (game.IsPairPlayer && game.CanSplit())
             {
                 return ShouldSplit(game) ? Decision.Split : Decision.None;
@@ -262,6 +266,13 @@ namespace CasinoSimulationApi.Data
         {
             if (card == 1) return 11;
             else return card;
+        }
+
+        public Decision GetRandomDecision()
+        {
+            Random random = new Random();
+            int randomNumber = random.Next(0, 1);
+            return (Decision)randomNumber;
         }
     }
 }

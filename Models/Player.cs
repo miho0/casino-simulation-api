@@ -6,13 +6,15 @@
         public decimal BettingAmount { get; set; }
         public decimal Goal { get; set; }
         public decimal CurrentBet { get; set; }
+        public bool IsMartingale { get; set; }
 
-        public Player(decimal balance, decimal bettingAmount, decimal goal)
+        public Player(decimal balance, decimal bettingAmount, decimal goal, bool isMartingale = true)
         {
             Balance = balance;
             BettingAmount = bettingAmount;
             CurrentBet = bettingAmount;
             Goal = goal;
+            IsMartingale = isMartingale;
         }
 
         public bool CanBet()
@@ -56,7 +58,10 @@
 
         public void Lost()
         {
-            CurrentBet *= 2;
+            if (IsMartingale)
+            {
+                CurrentBet *= 2;
+            }
         }
 
         public void Won()

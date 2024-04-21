@@ -24,18 +24,27 @@ namespace CasinoSimulationApi.Controllers
         {
             return _blackjackService.GetGameResults(InitialBalance, BettingAmount, Goal);
         }
-
-        [HttpGet("GetProbability")]
-        public ActionResult<ProbabilityInformation> GetProbability(decimal InitialBalance, decimal BettingAmount, decimal Goal, int Itterations)
+        [HttpGet("RandomDecisions")]
+        public ActionResult<ProbabilityInformation> RandomDecisions(decimal InitialBalance, decimal BettingAmount, decimal Goal, int Itterations)
         {
-            return _blackjackService.GetProbabilityInformation(InitialBalance, BettingAmount, Goal, Itterations);
+            return _blackjackService.GetProbabilityInformation(InitialBalance, BettingAmount, Goal, Itterations, false, false);
         }
 
-        [HttpGet("testDecision")]
-        public ActionResult<Decision> TestDecision(int d1, int d2, int p1, int p2)
+        [HttpGet("BasicStrategy")]
+        public ActionResult<ProbabilityInformation> BasicStrategy(decimal InitialBalance, decimal BettingAmount, decimal Goal, int Itterations)
         {
-            BlackjackGame game = new BlackjackGame(new List<int> { d1, d2 }, new List<int> { p1, p2 });
-            return _decisionService.Decide(game);
+            return _blackjackService.GetProbabilityInformation(InitialBalance, BettingAmount, Goal, Itterations, true, false);
+        }
+        [HttpGet("RandomDecisionsAndMartingale")]
+        public ActionResult<ProbabilityInformation> RandomDecisionsAndMartingale(decimal InitialBalance, decimal BettingAmount, decimal Goal, int Itterations)
+        {
+            return _blackjackService.GetProbabilityInformation(InitialBalance, BettingAmount, Goal, Itterations, false);
+        }
+
+        [HttpGet("BasicStrategyAndMartingale")]
+        public ActionResult<ProbabilityInformation> BasicStrategyAndMartingale(decimal InitialBalance, decimal BettingAmount, decimal Goal, int Itterations)
+        {
+            return _blackjackService.GetProbabilityInformation(InitialBalance, BettingAmount, Goal, Itterations);
         }
     }
 }
